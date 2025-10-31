@@ -65,7 +65,7 @@ out/
 # Misc
 .DS_Store
 *.log
+.next
 
-/frontend/.next/
 
 /frontend/node_modules/
