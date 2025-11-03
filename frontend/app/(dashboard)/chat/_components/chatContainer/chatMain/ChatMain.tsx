@@ -10,6 +10,8 @@ import CreateTicketModal from "./_components/(modals)/CreateTicketModal";
 import PollModal from "./_components/(modals)/PollModal";
 import ScheduleModal from "./_components/(modals)/ScheduleModal";
 import AttachmentModal from "./_components/(modals)/AttchmentModal";
+
+
 export default function ChatMain({
   chatId,
   onBack,
@@ -128,6 +130,7 @@ export default function ChatMain({
         phone={selectedChat?.phone}
         avatar={selectedChat?.avatar}
         onBack={onBack}
+        onToggleRight={onToggleRight} // ✅ pass the function
       />
 
       {/* Messages */}

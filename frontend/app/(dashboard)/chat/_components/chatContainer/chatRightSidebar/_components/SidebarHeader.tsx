@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { TbLayoutSidebarRightCollapseFilled } from "react-icons/tb";
+import { TbLayoutSidebarLeftCollapseFilled, TbLayoutSidebarRightCollapseFilled } from "react-icons/tb";
 import { FaCircleUser } from "react-icons/fa6";
 import { LuPencilLine } from "react-icons/lu";
 import { TfiReload } from "react-icons/tfi";
@@ -24,7 +24,7 @@ export default function SidebarHeader({
           title="Collapse"
           className="rounded-full"
         >
-          <TbLayoutSidebarRightCollapseFilled className="size-4" />
+          <TbLayoutSidebarLeftCollapseFilled className="size-4" />
         </Button>
       </div>
 
@@ -49,7 +49,7 @@ export default function SidebarHeader({
           <FaCircleUser className="size-4 hover:text-foreground cursor-pointer" title="View Profile" />
           <LuPencilLine className="size-4 hover:text-foreground cursor-pointer" title="Edit" />
           <TfiReload className="size-4 hover:text-foreground cursor-pointer" title="Refresh" />
-          <TbLayoutSidebarRightCollapseFilled
+          <TbLayoutSidebarLeftCollapseFilled
             onClick={onToggleCollapse}
             className="size-4 hover:text-foreground cursor-pointer"
             title="Collapse"
