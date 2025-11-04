@@ -4,12 +4,16 @@ export type TickStatus = "sent" | "delivered" | "seen";
 export interface Message {
   id: string;
   content: string;
-  sender: "user" | "agent"; // user = contact side, agent = our side
+  sender: "agent" | "user";
   timestamp: string;
-  type?: "text" | "calendly" | "file";
-  file?: { name: string; url: string };
-  status?: TickStatus; // only for agent messages
-  fromAccount?: string; // the WA number used to send
+  status?: TickStatus;
+  fromAccount?: string;
+  type?: "text" | "poll"; // 👈 add
+  pollData?: {            // 👈 add
+    options: string[];
+    multipleVotes: boolean;
+    votes: number[];
+  };
 }
 
 export interface Chat {

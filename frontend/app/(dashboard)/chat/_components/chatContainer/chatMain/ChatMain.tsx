@@ -162,12 +162,38 @@ export default function ChatMain({
         <CreateTicketModal
           isOpen={!!selectedMsgForTicket}
           onClose={() => setSelectedMsgForTicket(null)}
-          message={selectedMsgForTicket}
-          sender={selectedChat}
+          senderName={selectedChat?.name || "Unknown"}
+          senderPhone={selectedChat?.phone || ""}
+          messageContent={selectedMsgForTicket?.content || ""}
         />
       )}
 
-      {showPollModal && <PollModal isOpen onClose={() => setShowPollModal(false)} />}
+      {showPollModal && (
+        <PollModal
+          isOpen
+          onClose={() => setShowPollModal(false)}
+          onCreatePoll={(poll) => {
+            const newPollMessage: Message = {
+              id: Date.now().toString(),
+              type: "poll",
+              content: poll.question,
+              pollData: {
+                options: poll.options,
+                multipleVotes: poll.multipleVotes,
+                votes: Array(poll.options.length).fill(0),
+              },
+              sender: "agent", // ✅ valid literal
+              timestamp: new Date().toISOString(),
+              status: "sent",
+              fromAccount: selectedPhone,
+            };
+            setMessages((prev: Message[]) => [...prev, newPollMessage]);
+
+          }}
+
+        />
+      )}
+
       {showScheduleModal && <ScheduleModal isOpen onClose={() => setShowScheduleModal(false)} />}
       {showAttachmentModal && <AttachmentModal isOpen onClose={() => setShowAttachmentModal(false)} />}
     </div>

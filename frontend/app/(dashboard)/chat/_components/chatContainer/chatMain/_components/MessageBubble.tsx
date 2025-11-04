@@ -2,6 +2,7 @@
 import { Copy, MessageSquarePlus, MoreHorizontal, Reply, Trash2, Check, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Message, TickStatus } from "@/components/layouts/chat/types";
+import PollMessageBubble from "./PollMessageBubble"
 import { useState } from "react";
 
 function TickInline({ status }: { status?: TickStatus }) {
@@ -38,7 +39,15 @@ export default function MessageBubble({
             : "bg-muted rounded-bl-none"
         )}
       >
-        <p className="leading-relaxed break-words">{msg.content}</p>
+        {msg.type === "poll" ? (
+          <PollMessageBubble
+            poll={msg.pollData ?? { options: [], multipleVotes: false, votes: [] }}
+            question={msg.content}
+          />
+        ) : (
+          <p className="leading-relaxed wrap-break-words">{msg.content}</p>
+        )}
+
         <div
           className={cn(
             "flex items-center gap-1 justify-end text-[10px] mt-1",

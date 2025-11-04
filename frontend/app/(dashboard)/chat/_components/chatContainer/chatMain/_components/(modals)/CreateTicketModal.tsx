@@ -1,170 +1,203 @@
-
-
+// frontend/app/(dashboard)/chat/_components/chatContainer/chatMain/_components/(modals)/CreateTicketModal.tsx
 "use client";
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { useState } from "react";
+import { X, ChevronDown, Calendar } from "lucide-react";
+import { toast } from "react-toastify";
+import moment from "moment-timezone";
+import { useTicketStore } from "@/store/useTicketStore";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { Message as ChatMessage, Chat as ChatUser } from "@/components/layouts/chat/types";
-
-export interface TicketFormData {
-  subject: string;
-  senderName?: string;
-  senderPhone?: string;
-  priority: "low" | "medium" | "high";
-  messageContent: string;
-}
 
 interface CreateTicketModalProps {
   isOpen: boolean;
   onClose: () => void;
-  message?: ChatMessage;
-  sender?: ChatUser;
-  onCreateTicket?: (data: TicketFormData) => void;
+  senderName: string;
+  senderPhone: string;
+  messageContent: string;
 }
 
 export default function CreateTicketModal({
   isOpen,
   onClose,
-  message,
-  sender,
-  onCreateTicket,
+  senderName,
+  senderPhone,
+  messageContent,
 }: CreateTicketModalProps) {
-  const [formData, setFormData] = React.useState<TicketFormData>({
-    subject: "",
-    senderName: "",
-    senderPhone: "",
-    priority: "medium",
-    messageContent: "",
-  });
+  const addTicket = useTicketStore((s: any) => s.addTicket);
 
-  React.useEffect(() => {
-    if (isOpen && message && sender) {
-      setFormData({
-        subject: message.content.length > 40 ? message.content.slice(0, 40) + "..." : message.content,
-        senderName: sender.name || "",
-        senderPhone: sender.phone || "",
-        priority: "medium",
-        messageContent: message.content,
-      });
+  const [subject, setSubject] = useState("");
+  const [status, setStatus] = useState<"open" | "closed">("open");
+  const [assignedTo, setAssignedTo] = useState<string | null>(null);
+  const [priority, setPriority] = useState<"Low" | "Medium" | "High">("Medium");
+  const [dueDate, setDueDate] = useState<string | null>(null);
+
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [isPriorityOpen, setIsPriorityOpen] = useState(false);
+
+  const USERS = ["Unassigned", "Taniya Das", "Arjun Singh", "Riya Patel"];
+  const PRIORITIES = ["Low", "Medium", "High"];
+
+  const handleCreate = () => {
+    if (!assignedTo || assignedTo === "Unassigned") {
+      toast.error("Please assign the ticket before creating it.");
+      return;
     }
-  }, [isOpen, message, sender]);
 
-  const handleChange = (field: keyof TicketFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = () => {
-    if (!formData.subject.trim()) return;
-    onCreateTicket?.(formData);
+    addTicket({
+      id: Date.now().toString(),
+      subject,
+      senderName,
+      senderPhone,
+      message: messageContent,
+      status,
+      assignedTo,
+      priority,
+      dueDate,
+      timestamp: new Date().toISOString(),
+    });
     onClose();
+    toast.success("Ticket created successfully!");
   };
+
+  if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="sm:max-w-md bg-background text-foreground border-border shadow-lg">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-semibold">Create Ticket</DialogTitle>
-            </DialogHeader>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-background border border-border rounded-xl shadow-lg w-full max-w-lg p-6 space-y-6"
+      >
+        {/* header */}
+        <div className="flex items-center justify-between border-b border-border pb-2">
+          <h2 className="text-base font-semibold">{senderName}</h2>
+          <button
+            onClick={onClose}
+            className="hover:bg-muted rounded-full p-1 transition"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-            <motion.div
-              key="ticketForm"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-4 mt-2"
+        {/* subject */}
+        <input
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="Ticket Subject"
+          className="w-full border-b border-border bg-transparent py-2 text-sm outline-none focus:border-primary"
+        />
+
+        {/* message preview */}
+        <div className="border-l-4 border-border pl-3 text-sm text-muted-foreground">
+          <p className="font-semibold">{senderPhone}</p>
+          <p>{messageContent}</p>
+        </div>
+
+        {/* quick controls */}
+        <div className="flex flex-wrap gap-3 text-sm">
+          {/* status toggle */}
+          <button
+            onClick={() => setStatus(status === "open" ? "closed" : "open")}
+            className="flex items-center gap-2"
+          >
+            <span
+              className={`h-3.5 w-3.5 rounded-full border-2 ${
+                status === "open" ? "border-destructive" : "border-green-500"
+              }`}
+            />
+            {status === "open" ? "Pending" : "Resolved"}
+          </button>
+
+          {/* assign */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setIsAssignOpen((p) => !p);
+                setIsPriorityOpen(false);
+              }}
+              className="border border-border rounded-md px-2 py-1 flex items-center gap-1"
             >
-              <div className="space-y-2">
-                <Label htmlFor="subject">Subject</Label>
-                <Input
-                  id="subject"
-                  placeholder="Enter subject..."
-                  value={formData.subject}
-                  onChange={(e) => handleChange("subject", e.target.value)}
-                />
+              <ChevronDown className="h-3 w-3" />
+              {assignedTo || "Unassigned"}
+            </button>
+            {isAssignOpen && (
+              <div className="absolute top-full left-0 mt-1 bg-background border border-border rounded-md shadow-md z-10">
+                {USERS.map((u) => (
+                  <div
+                    key={u}
+                    className="px-3 py-1.5 hover:bg-muted cursor-pointer"
+                    onClick={() => {
+                      setAssignedTo(u);
+                      setIsAssignOpen(false);
+                    }}
+                  >
+                    {u}
+                  </div>
+                ))}
               </div>
+            )}
+          </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="senderName">Sender Name</Label>
-                  <Input
-                    id="senderName"
-                    placeholder="Name"
-                    value={formData.senderName}
-                    onChange={(e) => handleChange("senderName", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="senderPhone">Phone</Label>
-                  <Input
-                    id="senderPhone"
-                    placeholder="+91..."
-                    value={formData.senderPhone}
-                    onChange={(e) => handleChange("senderPhone", e.target.value)}
-                  />
-                </div>
+          {/* priority */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setIsPriorityOpen((p) => !p);
+                setIsAssignOpen(false);
+              }}
+              className="border border-border rounded-md px-2 py-1 flex items-center gap-1"
+            >
+              <ChevronDown className="h-3 w-3" />
+              {priority}
+            </button>
+            {isPriorityOpen && (
+              <div className="absolute top-full left-0 mt-1 bg-background border border-border rounded-md shadow-md z-10">
+                {PRIORITIES.map((p) => (
+                  <div
+                    key={p}
+                    onClick={() => {
+                      setPriority(p as any);
+                      setIsPriorityOpen(false);
+                    }}
+                    className="px-3 py-1.5 hover:bg-muted cursor-pointer"
+                  >
+                    {p}
+                  </div>
+                ))}
               </div>
+            )}
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(v: "low" | "medium" | "high") => handleChange("priority", v)}
-                >
-                  <SelectTrigger id="priority" className="w-full">
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* due date (hidden for now) */}
+          <div className="hidden items-center gap-1">
+            <Calendar className="h-4 w-4 text-primary" />
+            {dueDate && (
+              <span className="text-xs">
+                {moment(dueDate).format("DD-MMM-YYYY")}
+              </span>
+            )}
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="messageContent">Message</Label>
-                <Textarea
-                  id="messageContent"
-                  rows={4}
-                  placeholder="Message content..."
-                  value={formData.messageContent}
-                  onChange={(e) => handleChange("messageContent", e.target.value)}
-                />
-              </div>
-            </motion.div>
-
-            <DialogFooter className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={onClose} className="border-border">
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit} className="bg-primary text-primary-foreground">
-                Create Ticket
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-    </AnimatePresence>
+        {/* footer */}
+        <div className="flex justify-end pt-3 border-t border-border">
+          <Button
+            onClick={handleCreate}
+            disabled={
+              !subject.trim() || !assignedTo || assignedTo === "Unassigned"
+            }
+            className={`${
+              !subject.trim() || !assignedTo || assignedTo === "Unassigned"
+                ? "opacity-60 cursor-not-allowed"
+                : "bg-primary text-primary-foreground"
+            }`}
+          >
+            Create Ticket
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
